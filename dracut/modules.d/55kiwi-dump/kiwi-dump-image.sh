@@ -91,7 +91,8 @@ function get_disk_list {
     kiwi_oem_maxdisk=$(getarg rd.kiwi.oem.maxdisk=)
     kiwi_oem_installdevice=$(getarg rd.kiwi.oem.installdevice=)
     
-    # Check for smallest disk parameter - Configure lsblk options based on the selection mode
+    # Check for smallest disk parameter
+    # - Configure lsblk options based on the selection mode
     if getargbool 0 rd.kiwi.oem.smallest_disk; then
         # Sort by SIZE (ascending), include TRAN to identify USBs
         blk_opts="-p -n -r --sort SIZE -o NAME,SIZE,TYPE,TRAN"
@@ -232,7 +233,8 @@ function get_disk_list {
         # If looking for smallest disk, preserve the lsblk size-sort order
         echo "${list_items}"
     else
-        # Default behavior: apply final alphabetical sorting for the used disk_device names
+        # Default behavior:
+        # apply final alphabetical sorting for the used disk_device names
         list_items_sorted=$(sort_disk_entries "${list_items}")
         for entry in ${list_items_sorted[*]}; do
             echo -n "${entry} $(find_disk_entry "${list_items}" "${entry}") "

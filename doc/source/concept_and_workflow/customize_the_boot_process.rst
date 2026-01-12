@@ -280,6 +280,15 @@ the available kernel boot parameters for these modules:
   with a 480G RAID1 configured for OS deployment. With
   `rd.kiwi.oem.maxdisk=500G`, the deployment is performed on the RAID disk.
 
+``rd.kiwi.oem.smallest_disk``
+  When configured the smallest logical disk device is selected as installation destination
+  during unattended OEM deployments. Flash drives get skipped to avoid overwriting
+  installaton media.
+  Similar to `rd.kiwi.oem.maxdisk` this aims to always select the correct boot device in
+  JBOD setups which is usually the smallest device. This parameter however is more
+  flexible by not requiring setting specific values for each setup when deploying to
+  setups with varying drive sizes. 
+    
 ``rd.kiwi.oem.force_resize``
   Forces the disk resize process on an OEM disk image. If set, no sanity
   check for unpartitioned/free space is performed and also an eventually
@@ -304,13 +313,6 @@ the available kernel boot parameters for these modules:
 
    When setting `rd.kiwi.oem.installdevice` explicitly through the kernel command line,
    {kiwi} uses the device without prompting for confirmation.
-
-``rd.kiwi.oem.smallest_disk``
-  Alters the logic that chooses the destination device during unattended OEM deployments. 
-  The device with the least capacity gets selected instead of the drive with the
-  alphabetical lowest device name. Example: `rd.kiwi.oem.smallest_disk=1`.
-  This overwrites or resets any other OEM device-specific settings, such as
-  `oem-device-filter`, `oem-unattended-id` or `rd.kiwi.oem.maxdisk`.
 
 ``rd.live.overlay.size``
   Specifies the size for the `tmpfs` filesystem of a live ISO image that is used

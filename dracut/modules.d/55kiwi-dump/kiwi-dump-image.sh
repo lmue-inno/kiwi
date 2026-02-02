@@ -77,7 +77,7 @@ function get_disk_list {
     local list_items_sorted
     local max_disk
     local kiwi_oem_maxdisk
-    local blk_opts
+    local blk_opts="-p -n -r --sort NAME -o NAME,SIZE,TYPE,TRAN"
     local message
     local blk_opts_plus_label
     local kiwi_install_disk_part
@@ -96,9 +96,6 @@ function get_disk_list {
     if getargbool 0 rd.kiwi.oem.smallest_disk; then
         # Sort by SIZE (ascending), include TRAN to identify USBs
         blk_opts="-p -n -r --sort SIZE -o NAME,SIZE,TYPE,TRAN"
-    else
-        # Default: Sort by NAME, standard columns
-        blk_opts="-p -n -r --sort NAME -o NAME,SIZE,TYPE,TRAN"
     fi
 
     blk_opts_plus_label="${blk_opts},LABEL"

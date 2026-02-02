@@ -79,7 +79,7 @@ function get_disk_list {
     local kiwi_oem_maxdisk
     local blk_opts="-p -n -r --sort NAME -o NAME,SIZE,TYPE,TRAN"
     local message
-    local blk_opts_plus_label
+    local blk_opts_plus_label="${blk_opts},LABEL"
     local kiwi_install_disk_part
 
     if [ -n "${kiwi_devicepersistency}" ];then
@@ -90,15 +90,14 @@ function get_disk_list {
     kiwi_oemmultipath_scan=$(bool "${kiwi_oemmultipath_scan}")
     kiwi_oem_maxdisk=$(getarg rd.kiwi.oem.maxdisk=)
     kiwi_oem_installdevice=$(getarg rd.kiwi.oem.installdevice=)
-    
+
     # Check for smallest disk parameter
     # - Configure lsblk options based on the selection mode
     if getargbool 0 rd.kiwi.oem.smallest_disk; then
         # Sort by SIZE (ascending), include TRAN to identify USBs
         blk_opts="-p -n -r --sort SIZE -o NAME,SIZE,TYPE,TRAN"
+        blk_opts_plus_label="${blk_opts},LABEL"
     fi
-
-    blk_opts_plus_label="${blk_opts},LABEL"
 
     if [ -n "${kiwi_install_devicepersistency}" ];then
         disk_id=${kiwi_install_devicepersistency}

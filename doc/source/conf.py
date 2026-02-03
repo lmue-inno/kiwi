@@ -142,7 +142,7 @@ copyright = f'2020-{datetime.now().year}, {author}'
 # built documents.
 #
 # The short X.Y version.
-version = '10.2.36'
+version = '10.2.41'
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -199,7 +199,11 @@ html_sidebars = {
 html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
-    'collapse_navigation': False
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False
 }
 
 # -- Options for manual page output ---------------------------------------

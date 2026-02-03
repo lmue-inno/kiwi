@@ -286,6 +286,9 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
                 self.boot_directory_name, 'grub.cfg'
             ]
         )
+        # Setup/Update loader environment
+        self._setup_loader_variables()
+
         # Disable os-prober, it takes information from the host it
         # runs on which is not necessarily matching with the image
         os.environ.update({'GRUB_DISABLE_OS_PROBER': 'true'})
@@ -394,13 +397,13 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
             parameters['hypervisor'] = hypervisor
             template = self.grub2.get_multiboot_install_template(
                 self.failsafe_boot, has_graphics, has_serial,
-                self.continue_on_timeout
+                self.continue_on_timeout, self._has_btrfs_relative_path()
             )
         else:
             log.info('--> Using standard boot install template')
             template = self.grub2.get_install_template(
                 self.failsafe_boot, has_graphics, has_serial,
-                self.continue_on_timeout
+                self.continue_on_timeout, self._has_btrfs_relative_path()
             )
         try:
             self.config = template.substitute(parameters)
@@ -465,13 +468,13 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
             parameters['hypervisor'] = hypervisor
             template = self.grub2.get_multiboot_iso_template(
                 self.failsafe_boot, has_graphics, has_serial,
-                self.mediacheck_boot
+                self.mediacheck_boot, self._has_btrfs_relative_path()
             )
         else:
             log.info('--> Using standard boot template')
             template = self.grub2.get_iso_template(
                 self.failsafe_boot, has_graphics, has_serial,
-                self.mediacheck_boot
+                self.mediacheck_boot, self._has_btrfs_relative_path()
             )
         try:
             self.config = template.substitute(parameters)
@@ -1243,9 +1246,10 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
 
     def _create_early_boot_script_for_uuid_search(self, filename, uuid):
         with open(filename, 'w') as early_boot:
-            early_boot.write(
-                'set btrfs_relative_path="yes"{0}'.format(os.linesep)
-            )
+            if self._has_btrfs_relative_path():
+                early_boot.write(
+                    'set btrfs_relative_path="yes"{0}'.format(os.linesep)
+                )
             if self.custom_args.get('boot_is_crypto'):
                 early_boot.write(
                     'insmod cryptodisk{0}'.format(os.linesep)
@@ -1279,9 +1283,10 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
 
     def _create_early_boot_script_for_mbrid_search(self, filename, mbrid):
         with open(filename, 'w') as early_boot:
-            early_boot.write(
-                'set btrfs_relative_path="yes"{0}'.format(os.linesep)
-            )
+            if self._has_btrfs_relative_path():
+                early_boot.write(
+                    'set btrfs_relative_path="yes"{0}'.format(os.linesep)
+                )
             if mbrid:
                 early_boot.write(
                     f'search --file --set=root /boot/{mbrid.get_id()}{os.linesep}'
@@ -1722,13 +1727,40 @@ class BootLoaderConfigGrub2(BootLoaderConfigBase):
     def _get_custom_template(self) -> str:
         if not self.xml_state.build_type.bootloader:
             return ''
-        template_file = self.xml_state.build_type.bootloader[0].get_grub_template()
+        template_file = \
+            self.xml_state.build_type.bootloader[0].get_grub_template()
         if not template_file:
             return ''
-
-        template_path = os.path.join(os.path.abspath(self.xml_state.xml_data.description_dir),
-                                     self.xml_state.build_type.bootloader[0].get_grub_template())
+        template_path = os.path.join(
+            os.path.abspath(
+                self.xml_state.xml_data.description_dir
+            ),
+            self.xml_state.build_type.bootloader[0].get_grub_template()
+        )
         if not os.path.exists(template_path):
-            raise KiwiFileNotFound(f'failed to locate custom GRUB template {template_file}')
-
+            raise KiwiFileNotFound(
+                f'failed to locate custom GRUB template {template_file}'
+            )
         return template_path
+
+    def _has_btrfs_relative_path(self) -> bool:
+        if self.xml_state.build_type.get_btrfs_set_default_volume() or \
+           self.xml_state.build_type.get_btrfs_root_is_snapper_snapshot():
+            return True
+        return False
+
+    def _setup_loader_variables(self):
+        """
+        Run grub2-editenv for writing an updated environment blob
+        """
+        if self.root_mount:
+            variable_list = \
+                self.xml_state.get_build_type_bootloader_environment_variables()
+            if variable_list:
+                log.info(f'Set grub environment variables: {variable_list}')
+                Command.run(
+                    [
+                        'chroot', self.root_mount.mountpoint,
+                        'grub2-editenv', '-', 'set'
+                    ] + variable_list
+                )

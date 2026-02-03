@@ -3,7 +3,7 @@ Working with Images
 
 .. note::
 
-   This document provides a collection of worksheets which
+   This document provides a collection of worksheets that
    describes the creation and setup of appliances to work
    within a number of different target environments.
    
@@ -30,7 +30,6 @@ Working with Images
    working_with_images/network_overlay_boot
    working_with_images/network_live_iso_boot
 
-   working_with_images/setup_yast_on_first_boot
    working_with_images/custom_fstab_extension
    working_with_images/build_with_profiles
    working_with_images/build_in_buildservice

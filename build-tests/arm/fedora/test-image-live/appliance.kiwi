@@ -8,7 +8,7 @@
     </description>
     <preferences>
         <version>1.33.2</version>
-        <packagemanager>dnf</packagemanager>
+        <packagemanager>dnf5</packagemanager>
         <bootsplash-theme>charge</bootsplash-theme>
         <bootloader-theme>breeze</bootloader-theme>
         <locale>en_US</locale>
@@ -51,5 +51,6 @@
         <package name="grub2-efi-aa64-modules"/>
         <package name="grub2-efi-aa64-cdboot"/>
         <package name="fedora-release"/>
+        <package name="shadow"/>
     </packages>
 </image>

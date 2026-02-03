@@ -1120,9 +1120,15 @@ class TestBootLoaderConfigGrub2:
 
     def test_setup_live_image_config_multiboot(self):
         self.bootloader.multiboot = True
+        self.state.build_type.get_btrfs_set_default_volume = Mock(
+            return_value=False
+        )
+        self.state.build_type.get_btrfs_root_is_snapper_snapshot = Mock(
+            return_value=False
+        )
         self.bootloader.setup_live_image_config(self.mbrid)
         self.grub2.get_multiboot_iso_template.assert_called_once_with(
-            True, True, False, None
+            True, True, False, None, False
         )
 
     @patch.object(BootLoaderConfigGrub2, '_copy_grub_config_to_efi_path')
@@ -1138,7 +1144,7 @@ class TestBootLoaderConfigGrub2:
         self.bootloader.multiboot = False
         self.bootloader.setup_live_image_config(self.mbrid)
         self.grub2.get_iso_template.assert_called_once_with(
-            True, True, True, None
+            True, True, True, None, True
         )
         mock_copy_grub_config_to_efi_path.assert_called_once_with(
             'root_dir', 'earlyboot.cfg', 'iso'
@@ -1150,7 +1156,7 @@ class TestBootLoaderConfigGrub2:
         self.bootloader.multiboot = True
         self.bootloader.setup_install_image_config(self.mbrid)
         self.grub2.get_multiboot_install_template.assert_called_once_with(
-            True, True, True, True
+            True, True, True, True, True
         )
 
     @patch.object(BootLoaderConfigGrub2, '_mount_system')
@@ -1210,7 +1216,10 @@ class TestBootLoaderConfigGrub2:
             file_handle_grubenv.read.return_value = 'root=rootdev'
             file_handle_menu.read.return_value = \
                 'options foo\nlinux unexpected/boot/vmlinuz\ninitrd /boot/initrd'
-
+            self.bootloader.xml_state.\
+                get_build_type_bootloader_environment_variables = Mock(
+                    return_value=['menu_auto_hide=1']
+                )
             self.bootloader.setup_disk_image_config(
                 boot_options={
                     'root_device': 'rootdev', 'boot_device': 'bootdev'
@@ -1221,6 +1230,12 @@ class TestBootLoaderConfigGrub2:
             )
             os.environ.update({'GRUB_DISABLE_OS_PROBER': 'true'})
             assert mock_Command_run.call_args_list == [
+                call(
+                    [
+                        'chroot', self.bootloader.root_mount.mountpoint,
+                        'grub2-editenv', '-', 'set', 'menu_auto_hide=1'
+                    ]
+                ),
                 call(
                     [
                         'chroot', self.bootloader.root_mount.mountpoint,
@@ -1306,7 +1321,7 @@ class TestBootLoaderConfigGrub2:
         self.bootloader.multiboot = False
         self.bootloader.setup_install_image_config(self.mbrid)
         self.grub2.get_install_template.assert_called_once_with(
-            True, True, False, True
+            True, True, False, True, True
         )
         mock_copy_grub_config_to_efi_path.assert_called_once_with(
             'root_dir', 'earlyboot.cfg', 'iso'

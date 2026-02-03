@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kiwi"
-version = "10.2.36"
+version = "10.2.41"
 description = "KIWI - Appliance Builder"
 license = "GPL-3.0-or-later"
 readme = "README.rst"
@@ -106,6 +106,7 @@ sphinx_rtd_theme = "*"
 sphinxcontrib-spelling = "*"
 pyenchant = "*"
 ghp-import = "*"
+pdoc = ">=12.0.0"
 
 [tool.poetry.group.development]
 [tool.poetry.group.development.dependencies]
